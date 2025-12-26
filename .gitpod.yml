@@ -1,0 +1,5 @@
+image: gitpod/workspace-java
+
+tasks:
+  - init: mvn clean install
+    command: mvn test
