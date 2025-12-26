@@ -2,6 +2,7 @@ package com.lambdatest;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -13,32 +14,38 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.HashMap;
 
 public class TestScenario_3 {
 
 	WebDriver driver;
 	String username = System.getenv("LT_USERNAME");
 	String accessKey = System.getenv("LT_ACCESS_KEY");
+	
+	@Parameters({ "browser" })
+	 @BeforeMethod
+	    public void setup(String browser, String platform, String browserVersion) throws Exception {
 
-	@BeforeMethod
-	public void setup(String browser) throws Exception {
-		DesiredCapabilities caps = new DesiredCapabilities();
-		caps.setCapability("browserName", browser);
-		caps.setCapability("browserVersion", "latest");
-		caps.setCapability("platformName", "Windows 11");
+	        ChromeOptions options = new ChromeOptions();
+	        options.setPlatformName(platform);
+	        options.setBrowserVersion(browserVersion);
 
-		caps.setCapability("video", true);
-		caps.setCapability("network", true);
-		caps.setCapability("console", true);
-		caps.setCapability("visual", true);
+	        HashMap<String, Object> ltOptions = new HashMap<>();
+	        ltOptions.put("username", username);
+	        ltOptions.put("accessKey", accessKey);
+	        ltOptions.put("build", "Selenium 101 Assignment");
+	        ltOptions.put("name", "Test Scenario 1");
+	        ltOptions.put("video", true);
+	        ltOptions.put("network", true);
+	        ltOptions.put("console", true);
+	        ltOptions.put("visual", true);
+	        ltOptions.put("selenium_version", "4.0.0");
+	        ltOptions.put("w3c", true);
 
-		caps.setCapability("build", "LambdaTest 1");
-		caps.setCapability("name", "Drag & Drop Slider Test");
+	        options.setCapability("LT:Options", ltOptions);
 
-		driver = new RemoteWebDriver(new URL("https://" + username + ":" + accessKey + "@hub.lambdatest.com/wd/hub"),
-				caps);
-	}
-
+	        driver = new RemoteWebDriver(new URL("https://hub.lambdatest.com/wd/hub"), options);
+	    }
 	@Test
 	public void inputFormSubmitTest() throws InterruptedException {
 		driver.get("https://www.lambdatest.com/selenium-playground");
