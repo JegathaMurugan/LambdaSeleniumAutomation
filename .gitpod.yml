@@ -1,5 +1,9 @@
-image: gitpod/workspace-java
+image: maven:3.9.0-jdk-8
 
 tasks:
   - init: mvn clean install
-    command: mvn test
+    command: mvn test -DsuiteXmlFile=src/test/resources/testng.xml
+
+vscode:
+  extensions:
+    - vscjava.vscode-java-pack

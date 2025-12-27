@@ -1,73 +1,44 @@
 package com.lambdatest;
 
-import org.openqa.selenium.*;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
+import java.lang.reflect.Method;
 
-import java.net.URL;
+public class TestScenario_2 extends BaseTest {
 
-public class TestScenario_2 {
+	protected RemoteWebDriver driver;
 
-    WebDriver driver;
-    String username = System.getenv("LT_USERNAME");
-    String accessKey = System.getenv("LT_ACCESS_KEY");
+	@BeforeMethod
+	@Parameters({ "browser", "platform", "browserVersion" })
+	public void setup(String browser, String platform, String browserVersion, Method m) throws Exception {
+		createDriver(browser, platform, browserVersion, m.getName());
+		driver = getDriver();
+	}
+	@Test
+	public void dragSliderTo95Test() {
+		driver.get("https://www.lambdatest.com/selenium-playground");
+		driver.findElement(By.xpath("//a[text()='Drag & Drop Sliders']")).click();
 
-    @Parameters({"browser"})
-    
-    @BeforeMethod
-    public void setup(String browser) throws Exception {
-        DesiredCapabilities caps = new DesiredCapabilities();
-        caps.setCapability("browserName", browser);
-        caps.setCapability("browserVersion", "latest");
-        caps.setCapability("platformName", "Windows 11");
+		Assert.assertTrue(driver.getCurrentUrl().contains("drag-drop-range-sliders"));
 
-        caps.setCapability("video", true);
-        caps.setCapability("network", true);
-        caps.setCapability("console", true);
-        caps.setCapability("visual", true);
+		WebElement slider = driver.findElement(By.xpath("//input[@value='15']"));
+		WebElement sliderValue = driver.findElement(By.id("rangeSuccess"));
 
-        caps.setCapability("build", "LambdaTest 1");
-        caps.setCapability("name", "Drag & Drop Slider Test");
+		JavascriptExecutor js = (JavascriptExecutor) driver;
+		js.executeScript("arguments[0].value = 95;" + "arguments[1].innerText = 95;"
+				+ "arguments[0].dispatchEvent(new Event('input'));"
+				+ "arguments[0].dispatchEvent(new Event('change'));", slider, sliderValue);
 
-        driver = new RemoteWebDriver(new URL("https://" + username + ":" + accessKey + "@hub.lambdatest.com/wd/hub"),caps);
-    }
+		Assert.assertEquals(sliderValue.getText(), "95");
+	}
 
-    @Test
-    public void dragSliderTo95Test() throws InterruptedException {
-        // Launch Url
-        driver.get("https://www.lambdatest.com/selenium-playground");
-
-        // Click “Drag & Drop Sliders”
-        driver.findElement(By.xpath("//a[text()='Drag & Drop Sliders']")).click();
-        Assert.assertTrue(driver.getCurrentUrl().contains("drag-drop-range-sliders"));
-
-        WebElement slider = driver.findElement(By.xpath("//input[@value='15']"));
-        WebElement sliderValue = driver.findElement(By.id("rangeSuccess"));
-        
-        //Perform Value change in slider
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeScript(
-            "arguments[0].value = 95;" +               
-            "arguments[1].innerText = 95;" +           
-            "arguments[0].dispatchEvent(new Event('input'));" + 
-            "arguments[0].dispatchEvent(new Event('change'));",
-            slider, sliderValue
-        );
-
-        //Validate the displayed value
-        String value = sliderValue.getText();
-        System.out.println("Slider value: " + value);
-        Assert.assertEquals(value, "95", "Slider value should be 95");
-    }
-
-    @AfterMethod
-    public void tearDown() {
-        driver.quit();
-    }
+	@AfterMethod
+	public void tearDown() {
+		quitDriver();
+	}
 }

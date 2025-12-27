@@ -1,74 +1,63 @@
 package com.lambdatest;
 
 import org.openqa.selenium.*;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.*;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
-
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.time.Duration;
 import java.util.HashMap;
 
-public class TestScenario_3 {
+public class TestScenario_3 extends BaseTest {
 
-	WebDriver driver;
-	String username = System.getenv("LT_USERNAME");
-	String accessKey = System.getenv("LT_ACCESS_KEY");
-	
-	@Parameters({ "browser" })
-	 @BeforeMethod
-	    public void setup(String browser, String platform, String browserVersion) throws Exception {
+	protected RemoteWebDriver driver;
 
-	        ChromeOptions options = new ChromeOptions();
-	        options.setPlatformName(platform);
-	        options.setBrowserVersion(browserVersion);
+	@BeforeMethod
+	@Parameters({ "browser", "platform", "browserVersion" })
+	public void setup(String browser, String platform, String browserVersion, Method m) throws Exception {
+		createDriver(browser, platform, browserVersion, m.getName());
+		driver = getDriver(); 
+	}
 
-	        HashMap<String, Object> ltOptions = new HashMap<>();
-	        ltOptions.put("username", username);
-	        ltOptions.put("accessKey", accessKey);
-	        ltOptions.put("build", "Selenium 101 Assignment");
-	        ltOptions.put("name", "Test Scenario 1");
-	        ltOptions.put("video", true);
-	        ltOptions.put("network", true);
-	        ltOptions.put("console", true);
-	        ltOptions.put("visual", true);
-	        ltOptions.put("selenium_version", "4.0.0");
-	        ltOptions.put("w3c", true);
-
-	        options.setCapability("LT:Options", ltOptions);
-
-	        driver = new RemoteWebDriver(new URL("https://hub.lambdatest.com/wd/hub"), options);
-	    }
 	@Test
 	public void inputFormSubmitTest() throws InterruptedException {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+		Actions actions = new Actions(driver);
+
 		driver.get("https://www.lambdatest.com/selenium-playground");
 
-		// Click "Input Form Submit
-		WebElement inputFormLink = driver.findElement(By.xpath("//a[text()='Input Form Submit']"));
-		((JavascriptExecutor) driver).executeScript("arguments[0].click();", inputFormLink);
+		// Click Input Form Submit
+		WebElement inputFormLink = wait
+				.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[text()='Input Form Submit']")));
+		inputFormLink.click();
 
-		// Click Submit without filling
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-		WebElement submitBtn = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.selenium_btn")));
+		// Locate the submit button
+		WebElement submitBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[normalize-space()='Submit']")));
 		submitBtn.click();
+		Thread.sleep(500); 
 
-		WebElement nameInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("name")));
-		String validationMessage = nameInput.getAttribute("validationMessage");
-		Assert.assertEquals(validationMessage, "Please fill in this field.");
 
+		
+		// Locate the required field
+		WebElement nameField = driver.findElement(By.id("name"));
+
+		// Get browser-native validation message
+		String validationMsg = nameField.getAttribute("validationMessage");
+
+		// Assert that validation message is not empty
+		Assert.assertTrue(validationMsg != null && validationMsg.length() > 0,
+		        "Validation message not shown");
 		// Fill Name and Email using Actions
+		WebElement nameInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("name")));
 		WebElement emailInput = driver.findElement(By.name("email"));
-		Actions actions = new Actions(driver);
 		actions.moveToElement(nameInput).click().sendKeys("John Doe").perform();
 		Thread.sleep(500);
-		actions.sendKeys(Keys.TAB).perform(); // move to email
+		actions.sendKeys(Keys.TAB).perform();
 		Thread.sleep(500);
 		actions.sendKeys("john@example.com").perform();
 
@@ -76,51 +65,31 @@ public class TestScenario_3 {
 		driver.findElement(By.name("company")).sendKeys("Example Inc");
 		driver.findElement(By.name("website")).sendKeys("www.example.com");
 
-		// Country dropdown
+		// Country
 		Select countryDropdown = new Select(driver.findElement(By.name("country")));
 		countryDropdown.selectByVisibleText("United States");
 
-		// City
 		driver.findElement(By.name("city")).sendKeys("New York");
+		driver.findElement(By.name("address_line1")).sendKeys("Aj Street");
+		driver.findElement(By.name("address_line2")).sendKeys("chinnu");
+		driver.findElement(By.id("inputState")).sendKeys("TN");
+		driver.findElement(By.id("inputZip")).sendKeys("010622");
+		actions.sendKeys(Keys.TAB).perform();
 
-		// Address
-		WebElement addressInput = driver.findElement(By.name("address_line1"));
-		((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", addressInput);
-		addressInput.sendKeys("123 Example Street");
+		// Refind to avoid stale exception and click submit
+		WebElement finalSubmit = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[normalize-space()='Submit']")));
+		((JavascriptExecutor) driver).executeScript("arguments[0].click();", finalSubmit);
 
-		WebElement address2Input = driver.findElement(By.name("address_line2"));
-		((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", address2Input);
-		address2Input.sendKeys("Apt 101");
-
-		// State
-		WebElement stateInput = driver.findElement(By.id("inputState"));
-		((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", stateInput);
-		stateInput.sendKeys("NY");
-
-		// Zip
-		WebElement zipInput = driver.findElement(By.id("inputZip"));
-		((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", zipInput);
-		zipInput.sendKeys("10001");
-
-		// Click Submit
-		submitBtn.click();
-
+		// verify success message
 		WebElement successMsg = wait
 				.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("p.success-msg")));
-
-		// Scroll page to the top
-		((JavascriptExecutor) driver).executeScript("window.scrollTo({ top: 0, behavior: 'smooth' });");
-
-		// Validate the message
 		String msgText = successMsg.getText();
 		Assert.assertTrue(msgText.contains("Thanks for contacting us, we will get back to you shortly."));
-
-		// Optional small pause for smooth scroll
-		Thread.sleep(500);
 	}
 
 	@AfterMethod
 	public void tearDown() {
-		driver.quit();
+		if (driver != null)
+			driver.quit();
 	}
 }

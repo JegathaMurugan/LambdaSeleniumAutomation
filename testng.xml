@@ -1,18 +1,24 @@
 <suite name="ParallelTests" parallel="tests" thread-count="2">
-    <test name="Chrome_Win10">
-        <parameter name="browser" value="Chrome"/>
-        <classes>
-            <class name="com.lambdatest.TestScenario_1"/>
+  <test name="ChromeTest">
+    <parameter name="browser" value="Chrome"/>
+    <parameter name="platform" value="Windows 10"/>
+    <parameter name="browserVersion" value="latest"/>
+    <classes>
+         <class name="com.lambdatest.TestScenario_1"/>
             <class name="com.lambdatest.TestScenario_2"/>
             <class name="com.lambdatest.TestScenario_3"/>
-        </classes>
-    </test>
-    <test name="Safari_macOS">
-        <parameter name="browser" value="Safari"/>
-        <classes>
-            <class name="com.lambdatest.TestScenario_1"/>
+    </classes>
+</test>
+
+<test name="FirefoxTest">
+    <parameter name="browser" value="Firefox"/>
+    <parameter name="platform" value="Windows 10"/>
+    <parameter name="browserVersion" value="latest"/>
+    <classes>
+       <class name="com.lambdatest.TestScenario_1"/>
             <class name="com.lambdatest.TestScenario_2"/>
             <class name="com.lambdatest.TestScenario_3"/>
-        </classes>
-    </test>
+    </classes>
+</test>
+ 
 </suite>
