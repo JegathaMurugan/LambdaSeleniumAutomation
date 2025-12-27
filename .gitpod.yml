@@ -1,8 +1,9 @@
-image: maven:3.9.0-jdk-8
+image: mcr.microsoft.com/vscode/devcontainers/java:17
 
 tasks:
-  - init: mvn clean install
-    command: mvn test -DsuiteXmlFile=src/test/resources/testng.xml
+  - name: Run Selenium Tests
+    init: mvn clean compile
+    command: mvn clean test
 
 vscode:
   extensions:
